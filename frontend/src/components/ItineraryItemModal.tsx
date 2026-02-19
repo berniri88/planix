@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { ItemType, TripStatus, ItineraryItem } from '@/types'
+import type { ItemType, TripStatus, ItineraryItem, Location } from '@/types'
+import LocationSearch from './LocationSearch'
 
-const ITEM_TYPES: ItemType[] = ['Flight', 'Hotel', 'Activity', 'Restaurant', 'Transport', 'Idea']
+const ITEM_TYPES: ItemType[] = ['Flight', 'Bus', 'Train', 'Taxi', 'Hotel', 'Activity', 'Restaurant', 'Transport', 'Idea']
 const TYPE_LABELS: Record<ItemType, string> = {
     Flight: '✈️ Vuelo',
+    Bus: '🚌 Bus',
+    Train: '🚆 Tren',
+    Taxi: '🚕 Taxi',
     Hotel: '🏨 Hotel',
     Activity: '🎯 Actividad',
     Restaurant: '🍽️ Restaurante',
@@ -33,11 +37,14 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
     const [description, setDescription] = useState('')
     const [startTime, setStartTime] = useState('')
     const [endTime, setEndTime] = useState('')
-    const [locationName, setLocationName] = useState('')
+    const [location, setLocation] = useState<Location | null>(null)
+    const [endLocation, setEndLocation] = useState<Location | null>(null)
     const [cost, setCost] = useState('')
     const [currency, setCurrency] = useState('USD')
     const [bookingRef, setBookingRef] = useState('')
     const [loading, setLoading] = useState(false)
+
+    const isRoute = type === 'Flight' || type === 'Transport' || type === 'Bus' || type === 'Train' || type === 'Taxi'
 
     // Efecto para cargar datos en modo edición o resetear en modo creación
     useEffect(() => {
@@ -49,7 +56,8 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                 setDescription(itemToEdit.description || '')
                 setStartTime(itemToEdit.start_time || '')
                 setEndTime(itemToEdit.end_time || '')
-                setLocationName(itemToEdit.location?.name || '')
+                setLocation(itemToEdit.location || null)
+                setEndLocation(itemToEdit.end_location || null)
                 setCost(itemToEdit.cost ? String(itemToEdit.cost) : '')
                 setCurrency(itemToEdit.currency || 'USD')
                 setBookingRef(itemToEdit.booking_reference || '')
@@ -64,7 +72,8 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
         setDescription('')
         setStartTime('')
         setEndTime('')
-        setLocationName('')
+        setLocation(null)
+        setEndLocation(null)
         setCost('')
         setBookingRef('')
         setType('Activity')
@@ -84,7 +93,8 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                 description: description || null,
                 start_time: startTime || null,
                 end_time: endTime || null,
-                location: locationName ? { name: locationName } : null,
+                location: location,
+                end_location: isRoute ? endLocation : null,
                 cost: cost ? parseFloat(cost) : null,
                 currency,
                 booking_reference: bookingRef || null,
@@ -133,7 +143,7 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                                     key={t}
                                     type="button"
                                     onClick={() => setType(t)}
-                                    className={`chip ${type === t ? 'chip--active' : ''}`}
+                                    className={`chip ${type === t ? 'chip--active' : ''} `}
                                 >
                                     {TYPE_LABELS[t]}
                                 </button>
@@ -150,7 +160,7 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                                     key={s}
                                     type="button"
                                     onClick={() => setStatus(s)}
-                                    className={`chip chip--flex ${status === s ? 'chip--active' : ''}`}
+                                    className={`chip chip--flex ${status === s ? 'chip--active' : ''} `}
                                 >
                                     {STATUS_LABELS[s]}
                                 </button>
@@ -205,17 +215,30 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                         </div>
                     </div>
 
-                    {/* Lugar */}
-                    <div className="form-group">
-                        <label className="form-label">Lugar / Dirección</label>
-                        <input
-                            type="text"
-                            value={locationName}
-                            onChange={e => setLocationName(e.target.value)}
-                            placeholder="Ej: Aeropuerto Ezeiza, Buenos Aires"
-                            className="form-input"
+                    {/* Lugar / Dirección */}
+                    {isRoute ? (
+                        <div className="form-row">
+                            <LocationSearch
+                                label="Origen"
+                                value={location}
+                                onChange={setLocation}
+                                placeholder="Ciudad o punto de partida"
+                            />
+                            <LocationSearch
+                                label="Destino"
+                                value={endLocation}
+                                onChange={setEndLocation}
+                                placeholder="Ciudad o punto de llegada"
+                            />
+                        </div>
+                    ) : (
+                        <LocationSearch
+                            label="Ubicación"
+                            value={location}
+                            onChange={setLocation}
+                            placeholder="Lugar, hotel, restaurante..."
                         />
-                    </div>
+                    )}
 
                     {/* Costo */}
                     <div className="form-row form-row--cost">

@@ -34,12 +34,20 @@ export default function TripMap({ items }: Props) {
         return new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
     })
 
-    // Filtrar puntos válidos
-    const validMarkers = sortedItems.filter(
-        i => i.location?.lat !== undefined && i.location?.lng !== undefined
-    )
+    // Filtrar puntos válidos (marcadores)
+    // Incluimos tanto el inicio como el fin si existen
+    const markers: Array<{ lat: number, lng: number, title: string, item: ItineraryItem, isEnd?: boolean }> = []
 
-    if (validMarkers.length === 0) {
+    sortedItems.forEach(i => {
+        if (i.location?.lat !== undefined && i.location?.lng !== undefined) {
+            markers.push({ lat: i.location.lat, lng: i.location.lng, title: i.title, item: i })
+        }
+        if (i.end_location?.lat !== undefined && i.end_location?.lng !== undefined) {
+            markers.push({ lat: i.end_location.lat, lng: i.end_location.lng, title: `${i.title} (Fin)`, item: i, isEnd: true })
+        }
+    })
+
+    if (markers.length === 0) {
         return (
             <div className="map-placeholder glass-card" style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '1rem 0', background: 'rgba(255,255,255,0.05)', borderRadius: '12px' }}>
                 <div style={{ textAlign: 'center' }}>
@@ -50,14 +58,27 @@ export default function TripMap({ items }: Props) {
         )
     }
 
-    const centerLat = validMarkers[0].location!.lat!
-    const centerLng = validMarkers[0].location!.lng!
+    const centerLat = markers[0].lat
+    const centerLng = markers[0].lng
 
     // Generar líneas de recorrido
-    // Regla: si un ítem es transporte, dibujamos línea desde el ítem anterior (si tiene coords)
     const routes: Array<{ points: [number, number][], color: string, id: string }> = []
 
     sortedItems.forEach((item, index) => {
+        // Caso 1: El ítem tiene origen y destino propios
+        if (item.location?.lat && item.location?.lng && item.end_location?.lat && item.end_location?.lng) {
+            routes.push({
+                points: [
+                    [item.location.lat, item.location.lng],
+                    [item.end_location.lat, item.end_location.lng]
+                ],
+                color: item.type === 'Flight' ? '#6366f1' : '#10b981',
+                id: `${item.id}-internal`
+            })
+        }
+
+        // Caso 2: Conexión entre ítems (si el ítem anterior terminó en algún lugar y este empieza en otro)
+        // O simplemente conectar puntos cronológicamente si es transporte
         if (TRANSPORT_TYPES.includes(item.type) && item.location?.lat && item.location?.lng) {
             // Buscar el punto anterior con coordenadas
             let prevPoint = null
@@ -74,8 +95,8 @@ export default function TripMap({ items }: Props) {
                         [prevPoint.lat!, prevPoint.lng!],
                         [item.location.lat!, item.location.lng!]
                     ],
-                    color: item.type === 'Flight' ? '#6366f1' : '#10b981',
-                    id: item.id
+                    color: 'rgba(255, 255, 255, 0.2)', // Conexión sutil entre diferentes ítems
+                    id: `${item.id}-conn`
                 })
             }
         }
@@ -104,26 +125,27 @@ export default function TripMap({ items }: Props) {
                 ))}
 
                 {/* Marcadores con Tooltips y Popups */}
-                {validMarkers.map(item => (
+                {markers.map((m, idx) => (
                     <Marker
-                        key={item.id}
-                        position={[item.location!.lat!, item.location!.lng!]}
+                        key={`${m.item.id}-${idx}`}
+                        position={[m.lat, m.lng]}
                     >
                         <Tooltip direction="top" offset={[0, -40]} opacity={1} permanent={false}>
                             <div style={{ padding: '2px' }}>
-                                <strong>{item.title}</strong>
+                                <strong>{m.title}</strong>
                                 <br />
-                                <span style={{ fontSize: '0.8em' }}>{item.type}</span>
+                                <span style={{ fontSize: '0.8em' }}>{m.item.type}</span>
                             </div>
                         </Tooltip>
                         <Popup>
                             <div className="map-popup-content">
-                                <h4 style={{ margin: '0 0 4px 0' }}>{item.title}</h4>
-                                <p style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#666' }}>{item.description}</p>
+                                <h4 style={{ margin: '0 0 4px 0' }}>{m.title}</h4>
+                                <p style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#666' }}>{m.item.description}</p>
                                 <div style={{ fontSize: '0.85em' }}>
-                                    {item.start_time && <div>🕒 Inicio: {new Date(item.start_time).toLocaleString()}</div>}
-                                    {item.location?.name && <div>📍 {item.location.name}</div>}
-                                    {item.cost && <div>💰 {item.cost} {item.currency}</div>}
+                                    {m.item.start_time && <div>🕒 Inicio: {new Date(m.item.start_time).toLocaleString()}</div>}
+                                    {m.item.location?.name && <div>📍 Origen: {m.item.location.name}</div>}
+                                    {m.item.end_location?.name && <div>🏁 Destino: {m.item.end_location.name}</div>}
+                                    {m.item.cost && <div>💰 {m.item.cost} {m.item.currency}</div>}
                                 </div>
                             </div>
                         </Popup>

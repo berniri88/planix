@@ -441,6 +441,69 @@ nav {
     grid-template-columns: 1fr auto;
 }
 
+/* ============================================================
+   LOCATION SEARCH
+   ============================================================ */
+.location-search {
+    position: relative;
+    flex: 1;
+}
+
+.location-results {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #0f172a;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    max-height: 240px;
+    overflow-y: auto;
+    backdrop-filter: blur(15px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.location-result-item {
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--glass-border);
+    transition: background 0.2s;
+}
+
+.location-result-item:last-child {
+    border-bottom: none;
+}
+
+.location-result-item:hover {
+    background: var(--glass-hover);
+}
+
+.location-result-name {
+    font-weight: 500;
+    color: var(--foreground);
+    font-size: 0.9rem;
+}
+
+.location-result-address {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .form-actions {
     display: flex;
     gap: 1rem;
