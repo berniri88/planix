@@ -1,4 +1,4 @@
-import type { ItineraryItem, TripStatus, ItemType } from '@/types'
+import type { ItineraryItem, TripStatus } from '@/types'
 import { supabase } from '@/lib/supabase'
 import DocumentUpload from './DocumentUpload'
 
