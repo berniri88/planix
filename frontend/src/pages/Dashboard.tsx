@@ -2,12 +2,18 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import CreateTripModal from '@/components/CreateTripModal'
+import UpdateTripModal from '@/components/UpdateTripModal'
+import InboxDrawer from '@/components/InboxDrawer'
 import type { Trip } from '@/types'
 
 export default function Dashboard() {
     const [trips, setTrips] = useState<Trip[]>([])
     const [userEmail, setUserEmail] = useState('')
-    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [currentUserId, setCurrentUserId] = useState('')
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+    const [isInboxOpen, setIsInboxOpen] = useState(false)
+    const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null)
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -18,18 +24,14 @@ export default function Dashboard() {
             return
         }
         setUserEmail(user.email ?? '')
+        setCurrentUserId(user.id)
 
         const { data } = await supabase
             .from('trips')
             .select(`
-                id,
-                name,
-                start_date,
-                end_date,
-                image_url,
-                participants!inner(user_id)
+                *,
+                participants(count)
             `)
-            .eq('participants.user_id', user.id)
             .order('created_at', { ascending: false })
 
         if (data) setTrips(data as unknown as Trip[])
@@ -43,6 +45,28 @@ export default function Dashboard() {
     const handleLogout = async () => {
         await supabase.auth.signOut()
         navigate('/')
+    }
+
+    const handleDeleteTrip = async (e: React.MouseEvent, tripId: string) => {
+        e.stopPropagation()
+        if (!window.confirm('¿Estás seguro de que quieres eliminar este viaje? Esta acción no se puede deshacer.')) return
+
+        const { error } = await supabase
+            .from('trips')
+            .delete()
+            .eq('id', tripId)
+
+        if (error) {
+            alert('Error al eliminar: ' + error.message)
+        } else {
+            fetchTrips()
+        }
+    }
+
+    const handleEditClick = (e: React.MouseEvent, trip: Trip) => {
+        e.stopPropagation()
+        setSelectedTrip(trip)
+        setIsUpdateModalOpen(true)
     }
 
     if (loading) {
@@ -62,24 +86,35 @@ export default function Dashboard() {
                             Cerrar sesión
                         </button>
                     </div>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="cta-button"
-                    >
-                        + Nuevo Viaje
-                    </button>
+                    <div className="dashboard-header__group">
+                        <button
+                            onClick={() => setIsInboxOpen(true)}
+                            className="btn-ghost btn-ghost--sm"
+                            style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                            📥 Bandeja de Entrada
+                        </button>
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="cta-button"
+                        >
+                            + Nuevo Viaje
+                        </button>
+                    </div>
                 </header>
 
                 <div className="trips-section">
                     <h2 className="section-title">Tus Próximos Viajes</h2>
                     <div className="trips-grid">
-                        {trips.map((trip) => {
+                        {trips.map((trip: any) => {
                             const days = trip.start_date && trip.end_date
                                 ? Math.ceil(
                                     (new Date(trip.end_date).getTime() - new Date(trip.start_date).getTime())
                                     / (1000 * 60 * 60 * 24)
                                 )
                                 : null
+
+                            const participantCount = trip.participants?.[0]?.count || 0
 
                             return (
                                 <article
@@ -90,32 +125,62 @@ export default function Dashboard() {
                                     tabIndex={0}
                                     onKeyDown={(e) => e.key === 'Enter' && navigate(`/trips/${trip.id}`)}
                                 >
-                                    <div className="trip-card__image">
-                                        <span className="trip-card__emoji">✈️</span>
+                                    <div
+                                        className="trip-card__image"
+                                        style={trip.image_url ? {
+                                            backgroundImage: `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url(${trip.image_url})`,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center'
+                                        } : {}}
+                                    >
+                                        {!trip.image_url && <span className="trip-card__emoji">✈️</span>}
                                         {days && (
                                             <span className="trip-card__days">{days} días</span>
                                         )}
+                                        {trip.owner_id === currentUserId && (
+                                            <div className="trip-card__actions">
+                                                <button
+                                                    onClick={(e) => handleEditClick(e, trip)}
+                                                    className="trip-card__action-btn"
+                                                    title="Editar"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button
+                                                    onClick={(e) => handleDeleteTrip(e, trip.id)}
+                                                    className="trip-card__action-btn"
+                                                    title="Eliminar"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                     <h3 className="trip-card__name">{trip.name}</h3>
-                                    <p className="trip-card__dates">
-                                        {trip.start_date
-                                            ? new Date(trip.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })
-                                            : 'Sin fecha'}
-                                        {trip.end_date
-                                            ? ` → ${new Date(trip.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}`
-                                            : ''}
-                                    </p>
-                                    <p className="trip-card__cta">Ver itinerario →</p>
+                                    <div className="trip-card__footer">
+                                        <p className="trip-card__dates">
+                                            {trip.start_date
+                                                ? new Date(trip.start_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+                                                : 'S/F'}
+                                            {trip.end_date ? ' → ' : ''}
+                                            {trip.end_date
+                                                ? new Date(trip.end_date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+                                                : ''}
+                                        </p>
+                                        <div className="trip-card__participants">
+                                            👤 {participantCount}
+                                        </div>
+                                    </div>
                                 </article>
                             )
                         })}
 
                         <div
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={() => setIsCreateModalOpen(true)}
                             className="trip-card trip-card--add"
                             role="button"
                             tabIndex={0}
-                            onKeyDown={(e) => e.key === 'Enter' && setIsModalOpen(true)}
+                            onKeyDown={(e) => e.key === 'Enter' && setIsCreateModalOpen(true)}
                         >
                             <span className="trip-card--add__icon">+</span>
                             <p className="trip-card--add__label">Añadir otro viaje</p>
@@ -125,9 +190,21 @@ export default function Dashboard() {
             </div>
 
             <CreateTripModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
                 onTripCreated={fetchTrips}
+            />
+
+            <UpdateTripModal
+                isOpen={isUpdateModalOpen}
+                onClose={() => setIsUpdateModalOpen(false)}
+                trip={selectedTrip}
+                onTripUpdated={fetchTrips}
+            />
+
+            <InboxDrawer
+                isOpen={isInboxOpen}
+                onClose={() => setIsInboxOpen(false)}
             />
         </main>
     )

@@ -1,10 +1,14 @@
-import type { ItineraryItem, TripStatus } from '@/types'
+import type { ItineraryItem, TripStatus, ItemType } from '@/types'
+import { supabase } from '@/lib/supabase'
+import DocumentUpload from './DocumentUpload'
 
 interface Props {
     item: ItineraryItem
+    tripId: string
     canEdit: boolean
     onDelete: (id: string) => void
     onStatusChange: (id: string, status: TripStatus) => void
+    onRefresh: () => void
     typeIcon: string
     statusColor: string
 }
@@ -32,7 +36,31 @@ const formatDate = (dt?: string): string | null => {
     })
 }
 
-export default function ItineraryItemCard({ item, canEdit, onDelete, onStatusChange, typeIcon, statusColor }: Props) {
+export default function ItineraryItemCard({
+    item,
+    tripId,
+    canEdit,
+    onDelete,
+    onStatusChange,
+    onRefresh,
+    typeIcon,
+    statusColor
+}: Props) {
+
+    const handleDeleteDocument = async (docId: string, fileUrl: string) => {
+        if (!window.confirm('¿Eliminar este documento?')) return
+
+        try {
+            const path = fileUrl.split('planix-documents/').pop()
+            if (path) {
+                await supabase.storage.from('planix-documents').remove([path])
+            }
+            await supabase.from('documents').delete().eq('id', docId)
+            onRefresh()
+        } catch (err) {
+            alert('Error al eliminar documento')
+        }
+    }
     return (
         <div
             className="item-card"
@@ -87,7 +115,14 @@ export default function ItineraryItemCard({ item, canEdit, onDelete, onStatusCha
                         </span>
                     )}
                     {item.location?.name && (
-                        <span className="item-card__meta-item">📍 {item.location.name}</span>
+                        <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location.name)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="item-card__meta-item item-card__meta-item--link"
+                        >
+                            📍 {item.location.name}
+                        </a>
                     )}
                     {item.cost && (
                         <span className="item-card__meta-item item-card__meta-item--cost">
@@ -98,6 +133,41 @@ export default function ItineraryItemCard({ item, canEdit, onDelete, onStatusCha
                         <span className="item-card__meta-item">
                             🎫 Ref: <code className="booking-ref">{item.booking_reference}</code>
                         </span>
+                    )}
+                </div>
+
+                <div className="item-card__footer-actions">
+                    {item.documents && item.documents.length > 0 && (
+                        <div className="item-card__documents">
+                            {item.documents.map(doc => (
+                                <div key={doc.id} className="doc-chip">
+                                    <a
+                                        href={doc.file_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="doc-link"
+                                    >
+                                        📄 {doc.name}
+                                    </a>
+                                    {canEdit && (
+                                        <button
+                                            onClick={() => handleDeleteDocument(doc.id, doc.file_url)}
+                                            className="doc-delete"
+                                        >
+                                            ✕
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {canEdit && (
+                        <DocumentUpload
+                            tripId={tripId}
+                            itemId={item.id}
+                            onUploadSuccess={onRefresh}
+                        />
                     )}
                 </div>
             </div>

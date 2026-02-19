@@ -32,6 +32,15 @@ export interface Location {
     lng?: number
 }
 
+export interface Document {
+    id: string
+    item_id: string
+    name: string
+    file_url: string
+    file_type?: string
+    created_at: string
+}
+
 export interface ItineraryItem {
     id: string
     version_id: string
@@ -45,6 +54,7 @@ export interface ItineraryItem {
     cost?: number
     currency?: string
     booking_reference?: string
+    documents?: Document[]
     created_at: string
     updated_at: string
 }
@@ -71,4 +81,23 @@ export interface ChatMessage {
         email: string
         avatar_url?: string
     }
+}
+
+export type InboxStatus = 'Pending' | 'Accepted' | 'Rejected'
+
+export interface InboxItem {
+    id: string
+    user_id: string
+    type: ItemType
+    status: InboxStatus
+    title: string
+    description?: string
+    start_time?: string
+    end_time?: string
+    location?: Location
+    cost?: number
+    currency?: string
+    booking_reference?: string
+    raw_content?: string
+    created_at: string
 }

@@ -73,7 +73,18 @@ create table chat_messages (
   created_at timestamp with time zone default now()
 );
 
--- 8. POLÍTICAS DE SEGURIDAD (RLS)
+-- 8. FUNCIÓN DE AYUDA PARA RLS (Evita recursión infinita)
+create or replace function public.check_trip_membership(t_id uuid, u_id uuid)
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.participants
+    where trip_id = t_id and user_id = u_id
+  );
+end;
+$$ language plpgsql security definer;
+
+-- 9. POLÍTICAS DE SEGURIDAD (RLS)
 alter table trips enable row level security;
 alter table itinerary_versions enable row level security;
 alter table itinerary_items enable row level security;
@@ -81,18 +92,12 @@ alter table participants enable row level security;
 alter table documents enable row level security;
 alter table chat_messages enable row level security;
 
--- Ejemplo de política: Solo los participantes pueden ver el viaje
-create policy "Participants can view their trips" 
+-- TRIPS: El dueño o un participante puede ver
+create policy "Participants and owners can view trips" 
 on trips for select 
-using (
-  exists (
-    select 1 from participants 
-    where participants.trip_id = trips.id 
-    and participants.user_id = auth.uid()
-  )
-);
+using (owner_id = auth.uid() or public.check_trip_membership(id, auth.uid()));
 
--- El owner tiene control total
+-- TRIPS: El dueño tiene control total
 create policy "Owners have full access" 
 on trips for all 
 using (owner_id = auth.uid());

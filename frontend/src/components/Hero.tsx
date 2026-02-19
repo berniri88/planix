@@ -1,6 +1,6 @@
 const FEATURES = [
     {
-        title: 'Sueño & Plan',
+        title: 'Sueña & Planifica',
         desc: 'Captura ideas de redes sociales y crea versiones flexibles de tu itinerario.',
     },
     {
