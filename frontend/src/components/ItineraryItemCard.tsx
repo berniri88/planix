@@ -9,6 +9,7 @@ interface Props {
     onDelete: (id: string) => void
     onStatusChange: (id: string, status: TripStatus) => void
     onRefresh: () => void
+    onEdit: (item: ItineraryItem) => void
     typeIcon: string
     statusColor: string
 }
@@ -43,6 +44,7 @@ export default function ItineraryItemCard({
     onDelete,
     onStatusChange,
     onRefresh,
+    onEdit,
     typeIcon,
     statusColor
 }: Props) {
@@ -92,13 +94,24 @@ export default function ItineraryItemCard({
                             </span>
                         )}
                         {canEdit && (
-                            <button
-                                onClick={() => onDelete(item.id)}
-                                title="Eliminar ítem"
-                                className="btn-delete"
-                            >
-                                ✕
-                            </button>
+                            <>
+                                <button
+                                    onClick={() => onEdit(item)}
+                                    title="Editar ítem"
+                                    className="btn-ghost btn-ghost--sm"
+                                    style={{ marginRight: '0.5rem' }}
+                                >
+                                    ✏️
+                                </button>
+                                <button
+                                    onClick={() => onDelete(item.id)}
+                                    title="Eliminar ítem"
+                                    className="btn-delete"
+                                >
+                                    ✕
+                                </button>
+
+                            </>
                         )}
                     </div>
                 </div>
@@ -171,6 +184,6 @@ export default function ItineraryItemCard({
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

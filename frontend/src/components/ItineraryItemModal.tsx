@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { ItemType, TripStatus } from '@/types'
+import type { ItemType, TripStatus, ItineraryItem } from '@/types'
 
 const ITEM_TYPES: ItemType[] = ['Flight', 'Hotel', 'Activity', 'Restaurant', 'Transport', 'Idea']
 const TYPE_LABELS: Record<ItemType, string> = {
@@ -22,9 +22,11 @@ interface Props {
     isOpen: boolean
     onClose: () => void
     versionId: string
+    itemToEdit?: ItineraryItem | null
+    onSaveSuccess?: () => void
 }
 
-export default function AddItemModal({ isOpen, onClose, versionId }: Props) {
+export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToEdit, onSaveSuccess }: Props) {
     const [type, setType] = useState<ItemType>('Activity')
     const [status, setStatus] = useState<TripStatus>('Idea')
     const [title, setTitle] = useState('')
@@ -37,7 +39,25 @@ export default function AddItemModal({ isOpen, onClose, versionId }: Props) {
     const [bookingRef, setBookingRef] = useState('')
     const [loading, setLoading] = useState(false)
 
-    if (!isOpen) return null
+    // Efecto para cargar datos en modo edición o resetear en modo creación
+    useEffect(() => {
+        if (isOpen) {
+            if (itemToEdit) {
+                setType(itemToEdit.type)
+                setStatus(itemToEdit.status)
+                setTitle(itemToEdit.title)
+                setDescription(itemToEdit.description || '')
+                setStartTime(itemToEdit.start_time || '')
+                setEndTime(itemToEdit.end_time || '')
+                setLocationName(itemToEdit.location?.name || '')
+                setCost(itemToEdit.cost ? String(itemToEdit.cost) : '')
+                setCurrency(itemToEdit.currency || 'USD')
+                setBookingRef(itemToEdit.booking_reference || '')
+            } else {
+                resetForm()
+            }
+        }
+    }, [isOpen, itemToEdit])
 
     const resetForm = () => {
         setTitle('')
@@ -49,13 +69,14 @@ export default function AddItemModal({ isOpen, onClose, versionId }: Props) {
         setBookingRef('')
         setType('Activity')
         setStatus('Idea')
+        setCurrency('USD')
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
         try {
-            const { error } = await supabase.from('itinerary_items').insert({
+            const itemData = {
                 version_id: versionId,
                 type,
                 status,
@@ -67,9 +88,26 @@ export default function AddItemModal({ isOpen, onClose, versionId }: Props) {
                 cost: cost ? parseFloat(cost) : null,
                 currency,
                 booking_reference: bookingRef || null,
-            })
+            }
+
+            let error;
+
+            if (itemToEdit) {
+                const { error: updateError } = await supabase
+                    .from('itinerary_items')
+                    .update(itemData)
+                    .eq('id', itemToEdit.id)
+                error = updateError
+            } else {
+                const { error: insertError } = await supabase
+                    .from('itinerary_items')
+                    .insert(itemData)
+                error = insertError
+            }
+
             if (error) throw error
-            resetForm()
+
+            if (onSaveSuccess) onSaveSuccess()
             onClose()
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Error desconocido'
@@ -79,10 +117,12 @@ export default function AddItemModal({ isOpen, onClose, versionId }: Props) {
         }
     }
 
+    if (!isOpen) return null
+
     return (
         <div className="modal-overlay">
             <div className="modal-card modal-card--lg">
-                <h2 className="modal-title">Añadir Ítem al Itinerario</h2>
+                <h2 className="modal-title">{itemToEdit ? 'Editar Ítem' : 'Añadir Ítem al Itinerario'}</h2>
                 <form onSubmit={handleSubmit} className="modal-form">
                     {/* Tipo */}
                     <div className="form-group">
@@ -224,7 +264,7 @@ export default function AddItemModal({ isOpen, onClose, versionId }: Props) {
                             Cancelar
                         </button>
                         <button type="submit" disabled={loading} className="cta-button">
-                            {loading ? 'Guardando...' : 'Añadir Ítem'}
+                            {loading ? 'Guardando...' : (itemToEdit ? 'Guardar Cambios' : 'Añadir Ítem')}
                         </button>
                     </div>
                 </form>

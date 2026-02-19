@@ -48,6 +48,20 @@ export default function InboxDrawer({ isOpen, onClose }: Props) {
 
         if (!version) return
 
+        // 1.5 Verificar duplicados
+        const { data: existingItems } = await supabase
+            .from('itinerary_items')
+            .select('id')
+            .eq('version_id', version.id)
+            .eq('title', item.title)
+            // Opcional: chequear start_time también si se desea más precisión
+            .maybeSingle()
+
+        if (existingItems) {
+            alert('¡Este ítem ya existe en el viaje seleccionado!')
+            return
+        }
+
         // 2. Crear el ítem de itinerario
         const { error: insertError } = await supabase
             .from('itinerary_items')

@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import type { Trip, ItineraryItem, ItineraryVersion, Participant, ChatMessage, ItemType, TripStatus } from '@/types'
-import AddItemModal from '@/components/AddItemModal'
+import ItineraryItemModal from '@/components/ItineraryItemModal'
 import ItineraryItemCard from '@/components/ItineraryItemCard'
+import TripMap from '@/components/TripMap'
 
 const STATUS_COLORS: Record<TripStatus, string> = {
     Idea: '#6b7280',
@@ -43,6 +44,7 @@ export default function TripDetails() {
     const [loading, setLoading] = useState(true)
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [itemToEdit, setItemToEdit] = useState<ItineraryItem | null>(null)
     const [isParticipantsOpen, setIsParticipantsOpen] = useState(false)
     const [inviteEmail, setInviteEmail] = useState('')
     const [inviting, setInviting] = useState(false)
@@ -233,7 +235,31 @@ export default function TripDetails() {
     }
 
     const handleDeleteItem = async (itemId: string) => {
-        await supabase.from('itinerary_items').delete().eq('id', itemId)
+        if (!window.confirm('¿Estás seguro de que deseas eliminar este ítem?')) return
+
+        const { error } = await supabase.from('itinerary_items').delete().eq('id', itemId)
+
+        if (error) {
+            alert('Error al eliminar: ' + error.message)
+        } else {
+            // Actualización optimista o manual del estado
+            setItems(prev => prev.filter(i => i.id !== itemId))
+        }
+    }
+
+    const handleEditItem = (item: ItineraryItem) => {
+        setItemToEdit(item)
+        setIsAddModalOpen(true)
+    }
+
+    const handleModalClose = () => {
+        setIsAddModalOpen(false)
+        setItemToEdit(null)
+    }
+
+    const handleModalSuccess = () => {
+        fetchVersionData(version?.id || '')
+        // fetchVersionData ya actualiza el estado items
     }
 
     const handleStatusChange = async (itemId: string, newStatus: TripStatus) => {
@@ -296,14 +322,16 @@ export default function TripDetails() {
                     >
                         💬 Chat
                     </button>
-                    {canEdit && (
-                        <button
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="cta-button cta-button--sm"
-                        >
-                            + Añadir Ítem
-                        </button>
-                    )}
+                    <button
+                        onClick={() => {
+                            setItemToEdit(null)
+                            setIsAddModalOpen(true)
+                        }}
+                        className="cta-button cta-button--sm"
+                    >
+                        + Añadir Ítem
+                    </button>
+
                 </div>
             </header>
 
@@ -361,6 +389,9 @@ export default function TripDetails() {
                         </div>
                     </div>
 
+                    {/* Mapa */}
+                    <TripMap items={filteredItems} />
+
                     {/* Filtros */}
                     <div className="filter-bar">
                         {FILTER_OPTIONS.map(f => (
@@ -390,6 +421,7 @@ export default function TripDetails() {
                                     onDelete={handleDeleteItem}
                                     onStatusChange={handleStatusChange}
                                     onRefresh={() => fetchVersionData(version?.id || '')}
+                                    onEdit={handleEditItem}
                                     typeIcon={TYPE_ICONS[item.type as ItemType]}
                                     statusColor={STATUS_COLORS[item.status as TripStatus]}
                                 />
@@ -465,10 +497,12 @@ export default function TripDetails() {
                 )}
             </div>
 
-            <AddItemModal
+            <ItineraryItemModal
                 isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
+                onClose={handleModalClose}
                 versionId={version?.id ?? ''}
+                itemToEdit={itemToEdit}
+                onSaveSuccess={handleModalSuccess}
             />
         </div>
     )
