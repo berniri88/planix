@@ -15,13 +15,17 @@ const STATUS_COLORS: Record<TripStatus, string> = {
 const TYPE_ICONS: Record<ItemType, string> = {
     Flight: '✈️',
     Hotel: '🏨',
+    Airbnb: '🏠',
     Activity: '🎯',
     Restaurant: '🍽️',
     Transport: '🚗',
     Idea: '💡',
+    Bus: '🚌',
+    Train: '🚆',
+    Taxi: '🚕',
 }
 
-const FILTER_OPTIONS = ['All', 'Flight', 'Hotel', 'Activity', 'Restaurant', 'Transport', 'Idea'] as const
+const FILTER_OPTIONS = ['All', 'Flight', 'Hotel', 'Airbnb', 'Activity', 'Restaurant', 'Transport', 'Idea', 'Bus', 'Train', 'Taxi'] as const
 type FilterOption = typeof FILTER_OPTIONS[number]
 
 const sortByTime = (items: ItineraryItem[]): ItineraryItem[] =>

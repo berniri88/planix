@@ -3,13 +3,14 @@ import { supabase } from '@/lib/supabase'
 import type { ItemType, TripStatus, ItineraryItem, Location } from '@/types'
 import LocationSearch from './LocationSearch'
 
-const ITEM_TYPES: ItemType[] = ['Flight', 'Bus', 'Train', 'Taxi', 'Hotel', 'Activity', 'Restaurant', 'Transport', 'Idea']
+const ITEM_TYPES: ItemType[] = ['Flight', 'Bus', 'Train', 'Taxi', 'Hotel', 'Airbnb', 'Activity', 'Restaurant', 'Transport', 'Idea']
 const TYPE_LABELS: Record<ItemType, string> = {
     Flight: '✈️ Vuelo',
     Bus: '🚌 Bus',
     Train: '🚆 Tren',
     Taxi: '🚕 Taxi',
     Hotel: '🏨 Hotel',
+    Airbnb: '🏠 Airbnb',
     Activity: '🎯 Actividad',
     Restaurant: '🍽️ Restaurante',
     Transport: '🚗 Transporte',
@@ -42,6 +43,7 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
     const [cost, setCost] = useState('')
     const [currency, setCurrency] = useState('USD')
     const [bookingRef, setBookingRef] = useState('')
+    const [bookingUrl, setBookingUrl] = useState('')
     const [loading, setLoading] = useState(false)
 
     const isRoute = type === 'Flight' || type === 'Transport' || type === 'Bus' || type === 'Train' || type === 'Taxi'
@@ -61,6 +63,7 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                 setCost(itemToEdit.cost ? String(itemToEdit.cost) : '')
                 setCurrency(itemToEdit.currency || 'USD')
                 setBookingRef(itemToEdit.booking_reference || '')
+                setBookingUrl(itemToEdit.booking_url || '')
             } else {
                 resetForm()
             }
@@ -76,6 +79,7 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
         setEndLocation(null)
         setCost('')
         setBookingRef('')
+        setBookingUrl('')
         setType('Activity')
         setStatus('Idea')
         setCurrency('USD')
@@ -98,6 +102,7 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                 cost: cost ? parseFloat(cost) : null,
                 currency,
                 booking_reference: bookingRef || null,
+                booking_url: bookingUrl || null,
             }
 
             let error;
@@ -280,6 +285,23 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                             className="form-input"
                         />
                     </div>
+
+                    {/* Airbnb URL */}
+                    {type === 'Airbnb' && (
+                        <div className="form-group">
+                            <label className="form-label">Link de la Reserva Airbnb</label>
+                            <input
+                                type="url"
+                                value={bookingUrl}
+                                onChange={e => setBookingUrl(e.target.value)}
+                                placeholder="https://www.airbnb.com/trips/v1/..."
+                                className="form-input"
+                            />
+                            <p className="form-hint" style={{ fontSize: '0.75rem', color: 'var(--muted-dark)', marginTop: '0.25rem' }}>
+                                Pega el link de los detalles de tu reserva para tenerlo a mano.
+                            </p>
+                        </div>
+                    )}
 
                     {/* Acciones */}
                     <div className="form-actions">

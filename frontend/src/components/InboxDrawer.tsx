@@ -76,6 +76,7 @@ export default function InboxDrawer({ isOpen, onClose }: Props) {
                 cost: item.cost,
                 currency: item.currency,
                 booking_reference: item.booking_reference,
+                booking_url: item.booking_url,
                 status: 'Confirmed'
             })
 

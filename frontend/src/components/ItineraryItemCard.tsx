@@ -147,6 +147,16 @@ export default function ItineraryItemCard({
                             🎫 Ref: <code className="booking-ref">{item.booking_reference}</code>
                         </span>
                     )}
+                    {item.booking_url && (
+                        <a
+                            href={item.booking_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="item-card__meta-item item-card__meta-item--link"
+                        >
+                            🏠 Ver reserva
+                        </a>
+                    )}
                 </div>
 
                 <div className="item-card__footer-actions">

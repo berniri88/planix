@@ -1,7 +1,7 @@
 // Tipos centrales de la aplicación Planix
 
 export type TripStatus = 'Idea' | 'Tentative' | 'Confirmed'
-export type ItemType = 'Flight' | 'Hotel' | 'Activity' | 'Restaurant' | 'Transport' | 'Idea' | 'Bus' | 'Train' | 'Taxi'
+export type ItemType = 'Flight' | 'Hotel' | 'Activity' | 'Restaurant' | 'Transport' | 'Idea' | 'Bus' | 'Train' | 'Taxi' | 'Airbnb'
 export type ParticipantRole = 'Owner' | 'Editor' | 'Viewer'
 
 export interface Trip {
@@ -55,6 +55,7 @@ export interface ItineraryItem {
     cost?: number
     currency?: string
     booking_reference?: string
+    booking_url?: string
     documents?: Document[]
     created_at: string
     updated_at: string
@@ -100,6 +101,7 @@ export interface InboxItem {
     cost?: number
     currency?: string
     booking_reference?: string
+    booking_url?: string
     raw_content?: string
     created_at: string
 }
