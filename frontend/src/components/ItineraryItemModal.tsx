@@ -40,6 +40,10 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
     const [endTime, setEndTime] = useState('')
     const [location, setLocation] = useState<Location | null>(null)
     const [endLocation, setEndLocation] = useState<Location | null>(null)
+    const [manualLat, setManualLat] = useState('')
+    const [manualLng, setManualLng] = useState('')
+    const [manualEndLat, setManualEndLat] = useState('')
+    const [manualEndLng, setManualEndLng] = useState('')
     const [cost, setCost] = useState('')
     const [currency, setCurrency] = useState('USD')
     const [bookingRef, setBookingRef] = useState('')
@@ -60,6 +64,10 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                 setEndTime(itemToEdit.end_time || '')
                 setLocation(itemToEdit.location || null)
                 setEndLocation(itemToEdit.end_location || null)
+                setManualLat(itemToEdit.location?.lat ? String(itemToEdit.location.lat) : '')
+                setManualLng(itemToEdit.location?.lng ? String(itemToEdit.location.lng) : '')
+                setManualEndLat(itemToEdit.end_location?.lat ? String(itemToEdit.end_location.lat) : '')
+                setManualEndLng(itemToEdit.end_location?.lng ? String(itemToEdit.end_location.lng) : '')
                 setCost(itemToEdit.cost ? String(itemToEdit.cost) : '')
                 setCurrency(itemToEdit.currency || 'USD')
                 setBookingRef(itemToEdit.booking_reference || '')
@@ -77,6 +85,10 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
         setEndTime('')
         setLocation(null)
         setEndLocation(null)
+        setManualLat('')
+        setManualLng('')
+        setManualEndLat('')
+        setManualEndLng('')
         setCost('')
         setBookingRef('')
         setBookingUrl('')
@@ -89,6 +101,21 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
         e.preventDefault()
         setLoading(true)
         try {
+            // Preparar ubicación con coordenadas manuales si existen
+            const prepareLocation = (baseLocation: Location | null, manualLat: string, manualLng: string): Location | null => {
+                if (!baseLocation) return null
+                
+                const hasManualCoords = manualLat && manualLng
+                if (hasManualCoords) {
+                    return {
+                        ...baseLocation,
+                        lat: parseFloat(manualLat),
+                        lng: parseFloat(manualLng)
+                    }
+                }
+                return baseLocation
+            }
+
             const itemData = {
                 version_id: versionId,
                 type,
@@ -97,8 +124,8 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                 description: description || null,
                 start_time: startTime || null,
                 end_time: endTime || null,
-                location: location,
-                end_location: isRoute ? endLocation : null,
+                location: prepareLocation(location, manualLat, manualLng),
+                end_location: isRoute ? prepareLocation(endLocation, manualEndLat, manualEndLng) : null,
                 cost: cost ? parseFloat(cost) : null,
                 currency,
                 booking_reference: bookingRef || null,
@@ -222,27 +249,109 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
 
                     {/* Lugar / Dirección */}
                     {isRoute ? (
-                        <div className="form-row">
+                        <>
+                            <div className="form-row">
+                                <LocationSearch
+                                    label="Origen"
+                                    value={location}
+                                    onChange={setLocation}
+                                    placeholder="Ciudad o punto de partida"
+                                />
+                                <LocationSearch
+                                    label="Destino"
+                                    value={endLocation}
+                                    onChange={setEndLocation}
+                                    placeholder="Ciudad o punto de llegada"
+                                />
+                            </div>
+                            
+                            {/* Coordenadas manuales para rutas */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Coordenadas Origen (Lat, Lng)</label>
+                                    <div className="form-row">
+                                        <input
+                                            type="number"
+                                            value={manualLat}
+                                            onChange={e => setManualLat(e.target.value)}
+                                            placeholder="Latitud"
+                                            step="any"
+                                            className="form-input"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={manualLng}
+                                            onChange={e => setManualLng(e.target.value)}
+                                            placeholder="Longitud"
+                                            step="any"
+                                            className="form-input"
+                                        />
+                                    </div>
+                                    <p className="form-hint">
+                                        Opcional: Ingresa coordenadas manualmente para sobreescribir las búsquedas automáticas
+                                    </p>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Coordenadas Destino (Lat, Lng)</label>
+                                    <div className="form-row">
+                                        <input
+                                            type="number"
+                                            value={manualEndLat}
+                                            onChange={e => setManualEndLat(e.target.value)}
+                                            placeholder="Latitud"
+                                            step="any"
+                                            className="form-input"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={manualEndLng}
+                                            onChange={e => setManualEndLng(e.target.value)}
+                                            placeholder="Longitud"
+                                            step="any"
+                                            className="form-input"
+                                        />
+                                    </div>
+                                    <p className="form-hint">
+                                        Opcional: Ingresa coordenadas manualmente para sobreescribir las búsquedas automáticas
+                                    </p>
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <>
                             <LocationSearch
-                                label="Origen"
+                                label="Ubicación"
                                 value={location}
                                 onChange={setLocation}
-                                placeholder="Ciudad o punto de partida"
+                                placeholder="Lugar, hotel, restaurante..."
                             />
-                            <LocationSearch
-                                label="Destino"
-                                value={endLocation}
-                                onChange={setEndLocation}
-                                placeholder="Ciudad o punto de llegada"
-                            />
-                        </div>
-                    ) : (
-                        <LocationSearch
-                            label="Ubicación"
-                            value={location}
-                            onChange={setLocation}
-                            placeholder="Lugar, hotel, restaurante..."
-                        />
+                            
+                            {/* Coordenadas manuales para ubicación simple */}
+                            <div className="form-group">
+                                <label className="form-label">Coordenadas (Lat, Lng)</label>
+                                <div className="form-row">
+                                    <input
+                                        type="number"
+                                        value={manualLat}
+                                        onChange={e => setManualLat(e.target.value)}
+                                        placeholder="Latitud"
+                                        step="any"
+                                        className="form-input"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={manualLng}
+                                        onChange={e => setManualLng(e.target.value)}
+                                        placeholder="Longitud"
+                                        step="any"
+                                        className="form-input"
+                                    />
+                                </div>
+                                <p className="form-hint">
+                                    Opcional: Ingresa coordenadas manualmente para sobreescribir las búsquedas automáticas
+                                </p>
+                            </div>
+                        </>
                     )}
 
                     {/* Costo */}
