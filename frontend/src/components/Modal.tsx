@@ -30,9 +30,29 @@ interface PromptModalProps {
     defaultValue?: string
 }
 
-export function AlertModal({ isOpen, onClose, title, message, type = 'info' }: AlertModalProps) {
+// Componente base para manejar el cierre al hacer click en el fondo
+const ModalOverlay: React.FC<{ isOpen: boolean; onClose: () => void; children: React.ReactNode }> = ({ 
+    isOpen, 
+    onClose, 
+    children 
+}) => {
     if (!isOpen) return null
 
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        // Solo cerrar si se hace click directamente en el backdrop, no en el contenido
+        if (e.target === e.currentTarget) {
+            onClose()
+        }
+    }
+
+    return (
+        <div className="modal-overlay" onClick={handleBackdropClick}>
+            {children}
+        </div>
+    )
+}
+
+export function AlertModal({ isOpen, onClose, title, message, type = 'info' }: AlertModalProps) {
     const typeStyles = {
         info: 'border-blue-200 bg-blue-50',
         warning: 'border-yellow-200 bg-yellow-50',
@@ -41,7 +61,7 @@ export function AlertModal({ isOpen, onClose, title, message, type = 'info' }: A
     }
 
     return (
-        <div className="modal-overlay">
+        <ModalOverlay isOpen={isOpen} onClose={onClose}>
             <div className={`modal-card modal-card--sm ${typeStyles[type]}`}>
                 <div className="modal-header">
                     <h3 className="modal-title">{title}</h3>
@@ -58,7 +78,7 @@ export function AlertModal({ isOpen, onClose, title, message, type = 'info' }: A
                     </button>
                 </div>
             </div>
-        </div>
+        </ModalOverlay>
     )
 }
 
@@ -72,8 +92,6 @@ export function ConfirmModal({
     cancelText = 'Cancelar',
     type = 'warning' 
 }: ConfirmModalProps) {
-    if (!isOpen) return null
-
     const typeStyles = {
         warning: 'border-yellow-200 bg-yellow-50',
         danger: 'border-red-200 bg-red-50'
@@ -82,7 +100,7 @@ export function ConfirmModal({
     const confirmButtonClass = type === 'danger' ? 'btn-danger' : 'cta-button'
 
     return (
-        <div className="modal-overlay">
+        <ModalOverlay isOpen={isOpen} onClose={onClose}>
             <div className={`modal-card modal-card--sm ${typeStyles[type]}`}>
                 <div className="modal-header">
                     <h3 className="modal-title">{title}</h3>
@@ -105,7 +123,7 @@ export function ConfirmModal({
                     </button>
                 </div>
             </div>
-        </div>
+        </ModalOverlay>
     )
 }
 
@@ -122,14 +140,13 @@ export function PromptModal({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+        e.stopPropagation() // Prevenir que se cierre el modal
         onSubmit(value)
         setValue('')
     }
 
-    if (!isOpen) return null
-
     return (
-        <div className="modal-overlay">
+        <ModalOverlay isOpen={isOpen} onClose={onClose}>
             <div className="modal-card modal-card--sm">
                 <div className="modal-header">
                     <h3 className="modal-title">{title}</h3>
@@ -159,7 +176,7 @@ export function PromptModal({
                     </div>
                 </form>
             </div>
-        </div>
+        </ModalOverlay>
     )
 }
 

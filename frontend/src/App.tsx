@@ -6,6 +6,7 @@ import Landing from '@/pages/Landing'
 import Dashboard from '@/pages/Dashboard'
 import TripDetails from '@/pages/TripDetails'
 import AuthCallback from '@/pages/AuthCallback'
+import GlobalModals from '@/components/GlobalModals'
 
 function App() {
     const [session, setSession] = useState<Session | null>(null)
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/trips/:id" element={session ? <TripDetails /> : <Navigate to="/" replace />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
             </Routes>
+            <GlobalModals />
         </BrowserRouter>
     )
 }
