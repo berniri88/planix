@@ -6,6 +6,7 @@ import UpdateTripModal from '@/components/UpdateTripModal'
 import InboxDrawer from '@/components/InboxDrawer'
 import type { Trip } from '@/types'
 import { UI_ICONS } from '@/components/icons'
+import { useModals } from '@/components/Modal'
 
 export default function Dashboard() {
     const [trips, setTrips] = useState<Trip[]>([])
@@ -17,6 +18,7 @@ export default function Dashboard() {
     const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null)
     const [loading, setLoading] = useState(true)
     const navigate = useNavigate()
+    const { showAlert, showConfirm } = useModals()
 
     const fetchTrips = useCallback(async () => {
         const { data: { user } } = await supabase.auth.getUser()
@@ -50,18 +52,24 @@ export default function Dashboard() {
 
     const handleDeleteTrip = async (e: React.MouseEvent, tripId: string) => {
         e.stopPropagation()
-        if (!window.confirm('¿Estás seguro de que quieres eliminar este viaje? Esta acción no se puede deshacer.')) return
+        
+        showConfirm(
+            'Eliminar Viaje',
+            '¿Estás seguro de que quieres eliminar este viaje? Esta acción no se puede deshacer.',
+            async () => {
+                const { error } = await supabase
+                    .from('trips')
+                    .delete()
+                    .eq('id', tripId)
 
-        const { error } = await supabase
-            .from('trips')
-            .delete()
-            .eq('id', tripId)
-
-        if (error) {
-            alert('Error al eliminar: ' + error.message)
-        } else {
-            fetchTrips()
-        }
+                if (error) {
+                    showAlert('Error', 'Error al eliminar: ' + error.message, 'error')
+                } else {
+                    fetchTrips()
+                }
+            },
+            'danger'
+        )
     }
 
     const handleEditClick = (e: React.MouseEvent, trip: Trip) => {

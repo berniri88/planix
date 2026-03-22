@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useNavigate } from 'react-router-dom'
+import { useModals } from './Modal'
 
 interface Props {
     isOpen: boolean
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function CreateTripModal({ isOpen, onClose, onTripCreated }: Props) {
+    const { showAlert } = useModals()
     const [name, setName] = useState('')
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
@@ -47,7 +49,7 @@ export default function CreateTripModal({ isOpen, onClose, onTripCreated }: Prop
             onTripCreated()
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Error desconocido'
-            alert('Error al crear el viaje: ' + message)
+            showAlert('Error', 'Error al crear el viaje: ' + message, 'error')
         } finally {
             setLoading(false)
         }

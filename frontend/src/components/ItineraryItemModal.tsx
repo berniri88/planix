@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase'
 import type { ItemType, TripStatus, ItineraryItem, Location } from '@/types'
 import LocationSearch from './LocationSearch'
 import { TYPE_ICONS, STATUS_ICONS } from './icons'
+import { useModals } from './Modal'
 
 const ITEM_TYPES: ItemType[] = ['Flight', 'Bus', 'Train', 'Taxi', 'Hotel', 'Airbnb', 'Activity', 'Restaurant', 'Transport', 'Idea']
 const TYPE_LABELS: Record<ItemType, string> = {
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToEdit, onSaveSuccess }: Props) {
+    const { showAlert } = useModals()
     const [type, setType] = useState<ItemType>('Activity')
     const [status, setStatus] = useState<TripStatus>('Idea')
     const [title, setTitle] = useState('')
@@ -154,7 +156,7 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
             onClose()
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Error desconocido'
-            alert('Error: ' + message)
+            showAlert('Error', 'Error: ' + message, 'error')
         } finally {
             setLoading(false)
         }

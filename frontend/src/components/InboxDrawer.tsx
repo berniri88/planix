@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { InboxItem, Trip } from '@/types'
 import { UI_ICONS } from './icons'
+import { useModals } from './Modal'
 
 interface Props {
     isOpen: boolean
@@ -13,6 +14,7 @@ export default function InboxDrawer({ isOpen, onClose }: Props) {
     const [trips, setTrips] = useState<Trip[]>([])
     const [selectedTrip, setSelectedTrip] = useState<string>('')
     const [loading, setLoading] = useState(true)
+    const { showAlert } = useModals()
 
     useEffect(() => {
         if (isOpen) {
@@ -37,7 +39,10 @@ export default function InboxDrawer({ isOpen, onClose }: Props) {
     }
 
     const handleAccept = async (item: InboxItem, tripId: string) => {
-        if (!tripId) { alert('Selecciona un viaje primero'); return }
+        if (!tripId) { 
+            showAlert('Error', 'Selecciona un viaje primero', 'warning')
+            return 
+        }
 
         // 1. Obtener la versión activa del viaje
         const { data: version } = await supabase
@@ -59,7 +64,7 @@ export default function InboxDrawer({ isOpen, onClose }: Props) {
             .maybeSingle()
 
         if (existingItems) {
-            alert('¡Este ítem ya existe en el viaje seleccionado!')
+            showAlert('Información', '¡Este ítem ya existe en el viaje seleccionado!', 'info')
             return
         }
 
@@ -82,7 +87,7 @@ export default function InboxDrawer({ isOpen, onClose }: Props) {
             })
 
         if (insertError) {
-            alert('Error al crear ítem: ' + insertError.message)
+            showAlert('Error', 'Error al crear ítem: ' + insertError.message, 'error')
             return
         }
 

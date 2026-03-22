@@ -3,6 +3,7 @@ import type { ItineraryItem, TripStatus } from '@/types'
 import { supabase } from '@/lib/supabase'
 import DocumentUpload from './DocumentUpload'
 import { UI_ICONS } from './icons'
+import { useModals } from './Modal'
 
 interface Props {
     item: ItineraryItem
@@ -50,20 +51,26 @@ export default function ItineraryItemCard({
     typeIcon,
     statusColor
 }: Props) {
+    const { showAlert, showConfirm } = useModals()
 
     const handleDeleteDocument = async (docId: string, fileUrl: string) => {
-        if (!window.confirm('¿Eliminar este documento?')) return
-
-        try {
-            const path = fileUrl.split('planix-documents/').pop()
-            if (path) {
-                await supabase.storage.from('planix-documents').remove([path])
-            }
-            await supabase.from('documents').delete().eq('id', docId)
-            onRefresh()
-        } catch (err) {
-            alert('Error al eliminar documento')
-        }
+        showConfirm(
+            'Eliminar Documento',
+            '¿Eliminar este documento?',
+            async () => {
+                try {
+                    const path = fileUrl.split('planix-documents/').pop()
+                    if (path) {
+                        await supabase.storage.from('planix-documents').remove([path])
+                    }
+                    await supabase.from('documents').delete().eq('id', docId)
+                    onRefresh()
+                } catch (err) {
+                    showAlert('Error', 'Error al eliminar documento', 'error')
+                }
+            },
+            'danger'
+        )
     }
     return (
         <div

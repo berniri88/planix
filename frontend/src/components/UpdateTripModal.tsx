@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Trip } from '@/types'
+import { useModals } from './Modal'
 
 interface Props {
     isOpen: boolean
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function UpdateTripModal({ isOpen, onClose, trip, onTripUpdated }: Props) {
+    const { showAlert } = useModals()
     const [name, setName] = useState('')
     const [startDate, setStartDate] = useState('')
     const [endDate, setEndDate] = useState('')
@@ -48,7 +50,7 @@ export default function UpdateTripModal({ isOpen, onClose, trip, onTripUpdated }
             onClose()
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Error desconocido'
-            alert('Error al actualizar el viaje: ' + message)
+            showAlert('Error', 'Error al actualizar el viaje: ' + message, 'error')
         } finally {
             setLoading(false)
         }

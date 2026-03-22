@@ -6,6 +6,7 @@ import ItineraryItemModal from '@/components/ItineraryItemModal'
 import ItineraryItemCard from '@/components/ItineraryItemCard'
 import TripMap from '@/components/TripMap'
 import { TYPE_ICONS, UI_ICONS } from '@/components/icons'
+import { useModals } from '@/components/Modal'
 
 const STATUS_COLORS: Record<TripStatus, string> = {
     Idea: '#6b7280',
@@ -58,6 +59,7 @@ export default function TripDetails() {
     const [chatInput, setChatInput] = useState('')
     const [isChatOpen, setIsChatOpen] = useState(false)
     const chatEndRef = useRef<HTMLDivElement>(null)
+    const { showAlert, showConfirm, showPrompt } = useModals()
 
     const fetchParticipants = useCallback(async () => {
         const { data } = await supabase
@@ -145,9 +147,20 @@ export default function TripDetails() {
     }, [id, navigate, fetchParticipants, fetchVersionData, fetchAllVersions])
 
     const handleCreateVersion = async () => {
-        const name = window.prompt('Nombre del nuevo plan:', `Plan ${versions.length + 1}`)
-        if (!name) return
+        showPrompt(
+            'Nueva Versión',
+            'Ingresa el nombre para el nuevo plan:',
+            (name) => {
+                if (!name) return
+                
+                createVersion(name)
+            },
+            'Ej: Plan Alternativo',
+            `Plan ${versions.length + 1}`
+        )
+    }
 
+    const createVersion = async (name: string) => {
         const { data, error } = await supabase
             .from('itinerary_versions')
             .insert({
@@ -159,7 +172,7 @@ export default function TripDetails() {
             .single()
 
         if (error) {
-            alert('Error: ' + error.message)
+            showAlert('Error', 'Error: ' + error.message, 'error')
         } else {
             fetchAllVersions()
             if (data) fetchVersionData(data.id)
@@ -240,16 +253,21 @@ export default function TripDetails() {
     }
 
     const handleDeleteItem = async (itemId: string) => {
-        if (!window.confirm('¿Estás seguro de que deseas eliminar este ítem?')) return
+        showConfirm(
+            'Eliminar Ítem',
+            '¿Estás seguro de que deseas eliminar este ítem?',
+            async () => {
+                const { error } = await supabase.from('itinerary_items').delete().eq('id', itemId)
 
-        const { error } = await supabase.from('itinerary_items').delete().eq('id', itemId)
-
-        if (error) {
-            alert('Error al eliminar: ' + error.message)
-        } else {
-            // Actualización optimista o manual del estado
-            setItems(prev => prev.filter(i => i.id !== itemId))
-        }
+                if (error) {
+                    showAlert('Error', 'Error al eliminar: ' + error.message, 'error')
+                } else {
+                    // Actualización optimista o manual del estado
+                    setItems(prev => prev.filter(i => i.id !== itemId))
+                }
+            },
+            'danger'
+        )
     }
 
     const handleEditItem = (item: ItineraryItem) => {
@@ -275,7 +293,11 @@ export default function TripDetails() {
         e.preventDefault()
         if (!inviteEmail.trim()) return
         setInviting(true)
-        alert('Para propósitos del MVP, añade participantes directamente en la base de datos o mediante su UUID.')
+        showAlert(
+            'Información',
+            'Para propósitos del MVP, añade participantes directamente en la base de datos o mediante su UUID.',
+            'info'
+        )
         setInviteEmail('')
         setInviting(false)
     }

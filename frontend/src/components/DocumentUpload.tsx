@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useModals } from './Modal'
 
 interface Props {
     tripId: string
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export default function DocumentUpload({ tripId, itemId, onUploadSuccess }: Props) {
+    const { showAlert } = useModals()
     const [uploading, setUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -51,7 +53,7 @@ export default function DocumentUpload({ tripId, itemId, onUploadSuccess }: Prop
             if (fileInputRef.current) fileInputRef.current.value = ''
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Error desconocido'
-            alert('Error al subir documento: ' + message)
+            showAlert('Error', 'Error al subir documento: ' + message, 'error')
         } finally {
             setUploading(false)
         }

@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase'
+import { useModals } from './Modal'
 
 export default function LoginButton() {
+    const { showAlert } = useModals()
     const handleLogin = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
@@ -11,7 +13,7 @@ export default function LoginButton() {
 
         if (error) {
             console.error('Error al iniciar sesión:', error.message)
-            alert('Hubo un problema al conectar con Google.')
+            showAlert('Error', 'Hubo un problema al conectar con Google.', 'error')
         }
     }
 
