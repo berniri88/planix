@@ -1,6 +1,8 @@
+import React from 'react'
 import type { ItineraryItem, TripStatus } from '@/types'
 import { supabase } from '@/lib/supabase'
 import DocumentUpload from './DocumentUpload'
+import { UI_ICONS } from './icons'
 
 interface Props {
     item: ItineraryItem
@@ -10,7 +12,7 @@ interface Props {
     onStatusChange: (id: string, status: TripStatus) => void
     onRefresh: () => void
     onEdit: (item: ItineraryItem) => void
-    typeIcon: string
+    typeIcon: React.ReactNode
     statusColor: string
 }
 
@@ -101,14 +103,14 @@ export default function ItineraryItemCard({
                                     className="btn-ghost btn-ghost--sm"
                                     style={{ marginRight: '0.5rem' }}
                                 >
-                                    ✏️
+                                    <UI_ICONS.edit size={16} />
                                 </button>
                                 <button
                                     onClick={() => onDelete(item.id)}
                                     title="Eliminar ítem"
                                     className="btn-delete"
                                 >
-                                    ✕
+                                    <UI_ICONS.close size={16} />
                                 </button>
 
                             </>
@@ -123,7 +125,8 @@ export default function ItineraryItemCard({
                 <div className="item-card__meta">
                     {item.start_time && (
                         <span className="item-card__meta-item">
-                            🕐 {formatDate(item.start_time)}
+                            <UI_ICONS.clock size={14} style={{ marginRight: '4px' }} />
+                            {formatDate(item.start_time)}
                             {item.end_time && ` → ${formatDate(item.end_time)}`}
                         </span>
                     )}
@@ -134,17 +137,20 @@ export default function ItineraryItemCard({
                             rel="noreferrer"
                             className="item-card__meta-item item-card__meta-item--link"
                         >
-                            📍 {item.location.name}
+                            <UI_ICONS.mapPin size={14} style={{ marginRight: '4px' }} />
+                            {item.location.name}
                         </a>
                     )}
                     {item.cost && (
                         <span className="item-card__meta-item item-card__meta-item--cost">
-                            💰 {item.cost.toLocaleString()} {item.currency}
+                            <UI_ICONS.dollarSign size={14} style={{ marginRight: '4px' }} />
+                            {item.cost.toLocaleString()} {item.currency}
                         </span>
                     )}
                     {item.booking_reference && (
                         <span className="item-card__meta-item">
-                            🎫 Ref: <code className="booking-ref">{item.booking_reference}</code>
+                            <UI_ICONS.ticket size={14} style={{ marginRight: '4px' }} />
+                            Ref: <code className="booking-ref">{item.booking_reference}</code>
                         </span>
                     )}
                     {item.booking_url && (
@@ -154,7 +160,8 @@ export default function ItineraryItemCard({
                             rel="noreferrer"
                             className="item-card__meta-item item-card__meta-item--link"
                         >
-                            🏠 Ver reserva
+                            <UI_ICONS.home size={14} style={{ marginRight: '4px' }} />
+                            Ver reserva
                         </a>
                     )}
                 </div>
@@ -170,14 +177,15 @@ export default function ItineraryItemCard({
                                         rel="noreferrer"
                                         className="doc-link"
                                     >
-                                        📄 {doc.name}
+                                        <UI_ICONS.fileText size={14} style={{ marginRight: '4px' }} />
+                                        {doc.name}
                                     </a>
                                     {canEdit && (
                                         <button
                                             onClick={() => handleDeleteDocument(doc.id, doc.file_url)}
                                             className="doc-delete"
                                         >
-                                            ✕
+                                            <UI_ICONS.close size={12} />
                                         </button>
                                     )}
                                 </div>

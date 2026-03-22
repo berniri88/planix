@@ -5,6 +5,7 @@ import type { Trip, ItineraryItem, ItineraryVersion, Participant, ChatMessage, I
 import ItineraryItemModal from '@/components/ItineraryItemModal'
 import ItineraryItemCard from '@/components/ItineraryItemCard'
 import TripMap from '@/components/TripMap'
+import { TYPE_ICONS, UI_ICONS } from '@/components/icons'
 
 const STATUS_COLORS: Record<TripStatus, string> = {
     Idea: '#6b7280',
@@ -12,17 +13,17 @@ const STATUS_COLORS: Record<TripStatus, string> = {
     Confirmed: '#059669',
 }
 
-const TYPE_ICONS: Record<ItemType, string> = {
-    Flight: '✈️',
-    Hotel: '🏨',
-    Airbnb: '🏠',
-    Activity: '🎯',
-    Restaurant: '🍽️',
-    Transport: '🚗',
-    Idea: '💡',
-    Bus: '🚌',
-    Train: '🚆',
-    Taxi: '🚕',
+const TYPE_ICONS_LABELS: Record<ItemType, React.ReactNode> = {
+    Flight: <TYPE_ICONS.Flight size={16} />,
+    Hotel: <TYPE_ICONS.Hotel size={16} />,
+    Airbnb: <TYPE_ICONS.Airbnb size={16} />,
+    Activity: <TYPE_ICONS.Activity size={16} />,
+    Restaurant: <TYPE_ICONS.Restaurant size={16} />,
+    Transport: <TYPE_ICONS.Transport size={16} />,
+    Idea: <TYPE_ICONS.Idea size={16} />,
+    Bus: <TYPE_ICONS.Bus size={16} />,
+    Train: <TYPE_ICONS.Train size={16} />,
+    Taxi: <TYPE_ICONS.Taxi size={16} />,
 }
 
 const FILTER_OPTIONS = ['All', 'Flight', 'Hotel', 'Airbnb', 'Activity', 'Restaurant', 'Transport', 'Idea', 'Bus', 'Train', 'Taxi'] as const
@@ -299,7 +300,8 @@ export default function TripDetails() {
             <header className="trip-details__header">
                 <div>
                     <button onClick={() => navigate('/dashboard')} className="btn-back">
-                        ← Mis Viajes
+                        <UI_ICONS.back size={16} style={{ marginRight: '8px' }} />
+                        Mis Viajes
                     </button>
                     <h1 className="hero-title trip-details__title">{trip.name}</h1>
                     {(trip.start_date || trip.end_date) && (
@@ -318,13 +320,14 @@ export default function TripDetails() {
                         onClick={() => setIsParticipantsOpen(!isParticipantsOpen)}
                         className="btn-ghost"
                     >
-                        👥 {participants.length} Colaboradores
+                        <UI_ICONS.users size={16} style={{ marginRight: '8px' }} />
+                        {participants.length} Colaboradores
                     </button>
                     <button
                         onClick={() => setIsChatOpen(!isChatOpen)}
                         className="btn-ghost btn-ghost--icon"
                     >
-                        💬 Chat
+                        <UI_ICONS.chat size={16} />
                     </button>
                     <button
                         onClick={() => {
@@ -404,7 +407,12 @@ export default function TripDetails() {
                                 onClick={() => setActiveFilter(f)}
                                 className={`chip ${activeFilter === f ? 'chip--active' : ''}`}
                             >
-                                {f === 'All' ? 'Todos' : `${TYPE_ICONS[f as ItemType]} ${f}`}
+                                {f === 'All' ? 'Todos' : (
+                                    <>
+                                        {TYPE_ICONS_LABELS[f as ItemType]}
+                                        <span style={{ marginLeft: '4px' }}>{f}</span>
+                                    </>
+                                )}
                             </button>
                         ))}
                     </div>
@@ -426,7 +434,7 @@ export default function TripDetails() {
                                     onStatusChange={handleStatusChange}
                                     onRefresh={() => fetchVersionData(version?.id || '')}
                                     onEdit={handleEditItem}
-                                    typeIcon={TYPE_ICONS[item.type as ItemType]}
+                                    typeIcon={TYPE_ICONS_LABELS[item.type as ItemType]}
                                     statusColor={STATUS_COLORS[item.status as TripStatus]}
                                 />
                             ))}
@@ -463,7 +471,7 @@ export default function TripDetails() {
                                         className="form-input"
                                     />
                                     <button disabled={inviting} className="cta-button cta-button--icon">
-                                        +
+                                        <UI_ICONS.plus size={16} />
                                     </button>
                                 </div>
                             </form>
@@ -494,6 +502,7 @@ export default function TripDetails() {
                                 className="form-input"
                             />
                             <button onClick={handleSendMessage} className="cta-button">
+                                <UI_ICONS.send size={16} style={{ marginRight: '8px' }} />
                                 Enviar
                             </button>
                         </div>

@@ -1,26 +1,27 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { ItemType, TripStatus, ItineraryItem, Location } from '@/types'
 import LocationSearch from './LocationSearch'
+import { TYPE_ICONS, STATUS_ICONS } from './icons'
 
 const ITEM_TYPES: ItemType[] = ['Flight', 'Bus', 'Train', 'Taxi', 'Hotel', 'Airbnb', 'Activity', 'Restaurant', 'Transport', 'Idea']
 const TYPE_LABELS: Record<ItemType, string> = {
-    Flight: '✈️ Vuelo',
-    Bus: '🚌 Bus',
-    Train: '🚆 Tren',
-    Taxi: '🚕 Taxi',
-    Hotel: '🏨 Hotel',
-    Airbnb: '🏠 Airbnb',
-    Activity: '🎯 Actividad',
-    Restaurant: '🍽️ Restaurante',
-    Transport: '🚗 Transporte',
-    Idea: '💡 Idea',
+    Flight: 'Vuelo',
+    Bus: 'Bus',
+    Train: 'Tren',
+    Taxi: 'Taxi',
+    Hotel: 'Hotel',
+    Airbnb: 'Airbnb',
+    Activity: 'Actividad',
+    Restaurant: 'Restaurante',
+    Transport: 'Transporte',
+    Idea: 'Idea',
 }
 const STATUS_OPTIONS: TripStatus[] = ['Idea', 'Tentative', 'Confirmed']
 const STATUS_LABELS: Record<TripStatus, string> = {
-    Idea: '💡 Idea',
-    Tentative: '⏳ Tentativo',
-    Confirmed: '✅ Confirmado',
+    Idea: 'Idea',
+    Tentative: 'Tentativo',
+    Confirmed: 'Confirmado',
 }
 
 interface Props {
@@ -175,9 +176,10 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                                     key={t}
                                     type="button"
                                     onClick={() => setType(t)}
-                                    className={`chip ${type === t ? 'chip--active' : ''} `}
+                                    className={`chip ${type === t ? 'chip--active' : ''} chip--flex`}
                                 >
-                                    {TYPE_LABELS[t]}
+                                    {React.createElement(TYPE_ICONS[t], { size: 16 })}
+                                    <span style={{ marginLeft: '4px' }}>{TYPE_LABELS[t]}</span>
                                 </button>
                             ))}
                         </div>
@@ -194,7 +196,8 @@ export default function ItineraryItemModal({ isOpen, onClose, versionId, itemToE
                                     onClick={() => setStatus(s)}
                                     className={`chip chip--flex ${status === s ? 'chip--active' : ''} `}
                                 >
-                                    {STATUS_LABELS[s]}
+                                    {React.createElement(STATUS_ICONS[s], { size: 16 })}
+                                    <span style={{ marginLeft: '4px' }}>{STATUS_LABELS[s]}</span>
                                 </button>
                             ))}
                         </div>

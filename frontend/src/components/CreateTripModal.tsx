@@ -65,7 +65,7 @@ export default function CreateTripModal({ isOpen, onClose, onTripCreated }: Prop
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="Ej: Verano en Japón 🇯🇵"
+                            placeholder="Ej: Verano en Japón"
                             className="form-input"
                         />
                     </div>

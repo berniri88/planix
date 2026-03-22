@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { InboxItem, Trip } from '@/types'
+import { UI_ICONS } from './icons'
 
 interface Props {
     isOpen: boolean
@@ -107,8 +108,8 @@ export default function InboxDrawer({ isOpen, onClose }: Props) {
     return (
         <div className="inbox-drawer glass-card">
             <div className="inbox-drawer__header">
-                <h3>📥 Bandeja de Entrada (Mail)</h3>
-                <button onClick={onClose} className="btn-close">✕</button>
+                <h3><UI_ICONS.inbox size={16} style={{ marginRight: '8px' }} />Bandeja de Entrada (Mail)</h3>
+                <button onClick={onClose} className="btn-close"><UI_ICONS.close size={16} /></button>
             </div>
 
             <div className="inbox-drawer__content">

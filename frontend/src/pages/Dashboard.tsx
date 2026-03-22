@@ -5,6 +5,7 @@ import CreateTripModal from '@/components/CreateTripModal'
 import UpdateTripModal from '@/components/UpdateTripModal'
 import InboxDrawer from '@/components/InboxDrawer'
 import type { Trip } from '@/types'
+import { UI_ICONS } from '@/components/icons'
 
 export default function Dashboard() {
     const [trips, setTrips] = useState<Trip[]>([])
@@ -92,7 +93,8 @@ export default function Dashboard() {
                             className="btn-ghost btn-ghost--sm"
                             style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}
                         >
-                            📥 Bandeja de Entrada
+                            <UI_ICONS.inbox size={16} />
+                            Bandeja de Entrada
                         </button>
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
@@ -133,7 +135,7 @@ export default function Dashboard() {
                                             backgroundPosition: 'center'
                                         } : {}}
                                     >
-                                        {!trip.image_url && <span className="trip-card__emoji">✈️</span>}
+                                        {!trip.image_url && <UI_ICONS.plane size={24} />}
                                         {days && (
                                             <span className="trip-card__days">{days} días</span>
                                         )}
@@ -144,14 +146,14 @@ export default function Dashboard() {
                                                     className="trip-card__action-btn"
                                                     title="Editar"
                                                 >
-                                                    ✏️
+                                                    <UI_ICONS.edit size={16} />
                                                 </button>
                                                 <button
                                                     onClick={(e) => handleDeleteTrip(e, trip.id)}
                                                     className="trip-card__action-btn"
                                                     title="Eliminar"
                                                 >
-                                                    🗑️
+                                                    <UI_ICONS.delete size={16} />
                                                 </button>
                                             </div>
                                         )}
@@ -168,7 +170,8 @@ export default function Dashboard() {
                                                 : ''}
                                         </p>
                                         <div className="trip-card__participants">
-                                            👤 {participantCount}
+                                            <UI_ICONS.users size={14} style={{ marginRight: '4px' }} />
+                                            {participantCount}
                                         </div>
                                     </div>
                                 </article>
@@ -182,7 +185,7 @@ export default function Dashboard() {
                             tabIndex={0}
                             onKeyDown={(e) => e.key === 'Enter' && setIsCreateModalOpen(true)}
                         >
-                            <span className="trip-card--add__icon">+</span>
+                            <UI_ICONS.plus size={24} />
                             <p className="trip-card--add__label">Añadir otro viaje</p>
                         </div>
                     </div>

@@ -1,0 +1,65 @@
+import {
+    Plane,
+    Building2,
+    Home,
+    Target,
+    Utensils,
+    Car,
+    Lightbulb,
+    Bus,
+    Train,
+    Clock,
+    MapPin,
+    DollarSign,
+    Ticket,
+    FileText,
+    Edit,
+    X,
+    Inbox,
+    Users,
+    MessageSquare,
+    Plus,
+    ChevronLeft,
+    Trash2,
+    Calendar,
+    Send
+} from 'lucide-react'
+
+export const TYPE_ICONS = {
+    Flight: Plane,
+    Hotel: Building2,
+    Airbnb: Home,
+    Activity: Target,
+    Restaurant: Utensils,
+    Transport: Car,
+    Idea: Lightbulb,
+    Bus: Bus,
+    Train: Train,
+    Taxi: Car,
+}
+
+export const STATUS_ICONS = {
+    Idea: Lightbulb,
+    Tentative: Clock,
+    Confirmed: Ticket,
+}
+
+export const UI_ICONS = {
+    edit: Edit,
+    delete: Trash2,
+    close: X,
+    inbox: Inbox,
+    users: Users,
+    chat: MessageSquare,
+    plus: Plus,
+    back: ChevronLeft,
+    calendar: Calendar,
+    clock: Clock,
+    mapPin: MapPin,
+    dollarSign: DollarSign,
+    ticket: Ticket,
+    fileText: FileText,
+    send: Send,
+    home: Home,
+    plane: Plane,
+}
